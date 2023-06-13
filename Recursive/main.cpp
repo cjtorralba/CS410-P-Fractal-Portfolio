@@ -2,6 +2,7 @@
 
 #define WIDTH 800.0
 #define HEIGHT 800.0
+#define MAX_SNOWFLAKES 3
 
 using namespace std;
 
@@ -30,10 +31,16 @@ void draw_tree(double *p0, double *p1, int curr_iteration, int depth, double f) 
 
     G_rgb(.4 - ((double) curr_iteration / 50), .2 + ((double) curr_iteration / 10), 0.1);
 
+
     G_line(p0[0], p0[1], p1[0], p1[1]);
     G_line(p1[0], p1[1], x2, y2);
     G_line(x2, y2, x3, y3);
     G_line(p0[0], p0[1], x3, y3);
+
+    // fill
+    double x[] = {p0[0], p1[0], x2, x3};
+    double y[] = {p0[1], p1[1], y2, y3};
+    G_fill_polygon(x, y, 4);
 
     p2[0] = x2;
     p2[1] = y2;
@@ -45,18 +52,77 @@ void draw_tree(double *p0, double *p1, int curr_iteration, int depth, double f) 
 
     draw_tree(q, p2, curr_iteration + 1, depth, f);
     draw_tree(p3, q, curr_iteration + 1, depth, f);
+}
 
 
+void drawKochCurve(double p0[2], double p1[2], int depth) {
+    if (depth <= 0) {
+        return;
+    }
+    depth--;
+
+    // pick a random color
+    G_rgb(1.0, 1.0, 1.0);
+
+    // calculate the 2 new points which are 1/3 of the way from the original points
+    double p2[2], p3[2];
+    p2[0] = p0[0] + (p1[0] - p0[0]) / 3;
+    p2[1] = p0[1] + (p1[1] - p0[1]) / 3;
+    p3[0] = p0[0] + (p1[0] - p0[0]) * 2 / 3;
+    p3[1] = p0[1] + (p1[1] - p0[1]) * 2 / 3;
+
+    // calculate the 3rd point of the triangle which is 60 degrees from the line
+    double p4[2];
+    p4[0] = p2[0] + (p3[0] - p2[0]) / 2 - (p3[1] - p2[1]) * sqrt(3) / 2;
+    p4[1] = p2[1] + (p3[1] - p2[1]) / 2 + (p3[0] - p2[0]) * sqrt(3) / 2;
+
+    // draw the 3 lines of the triangle
+    G_line(p0[0], p0[1], p2[0], p2[1]);
+    G_line(p2[0], p2[1], p4[0], p4[1]);
+    G_line(p4[0], p4[1], p3[0], p3[1]);
+    G_line(p3[0], p3[1], p1[0], p1[1]);
+
+    // draw the other 3 lines of the triangle recursively
+    drawKochCurve(p0, p2, depth);
+    drawKochCurve(p2, p4, depth);
+    drawKochCurve(p4, p3, depth);
+    drawKochCurve(p3, p1, depth);
 }
 
 
 
 
+void draw_koch_at_point(double point[2], double sideLength) {
+
+
+    double p0[2], p1[2], p2[2];
+
+    p0[0] = point[0] - (sideLength / 2.0);
+    p0[1] = point[1] - (sideLength * sqrt(3.0) / 4.0);
+
+    p1[0] = point[0];
+    p1[1] =  point[1] + ((sideLength * sqrt(3.0)) / 4.0);
+
+    p2[0] = point[0] + (sideLength / 2.0);
+    p2[1] = point[1] - (sideLength * sqrt(3.0) / 4.0);
+
+    drawKochCurve(p0, p1, 3);
+    drawKochCurve(p1, p2, 3);
+    drawKochCurve(p2, p0, 3);
+
+}
+
+void draw_cloud(double x, double y) {
+    G_rgb(.839, .839, .839);
+    G_fill_circle(x, y, 25);
+    G_fill_circle(x - 20, y, 20);
+    G_fill_circle(x + 20, y, 20);
+    G_fill_circle(x - 40, y, 15);
+    G_fill_circle(x + 40, y, 15);
+}
 
 
 int main(int argc, char **argv) {
-
-
     int swidth, sheight;
 
 
@@ -68,11 +134,66 @@ int main(int argc, char **argv) {
     G_rgb(0.3, 0.3, 0.3); // dark gray
     G_clear();
 
+    // Night sky gradiaent
+    for(int i = 0; i < HEIGHT; i++) {
+        G_rgb(0.0, 0.0, 0.0 + (double) i / 1000);
+        G_line(0, 800 - i, 800, 800 - i);
+    }
+
+
+
+
+    // Star specs throughout whole screen
+    G_rgb(.949, .937, .286);
+    for(int i = 0; i < 1000; i++) {
+        G_point(drand48() * WIDTH, drand48() * HEIGHT);
+    }
+
+
+    // Snow lines
+    G_rgb(.94, .94, .916);
+    for(int i = 0; i < HEIGHT / 8.0; ++i) {
+        G_line(0, i, WIDTH, i);
+    }
+
+
+    draw_cloud(100, 740);
+    draw_cloud(220, 730);
+    draw_cloud(346, 745);
+    draw_cloud(471, 737);
+    draw_cloud(602, 730);
+    draw_cloud(718, 747);
+
+
+
+    // Place tree
+    double p0[] = { WIDTH / 1.5, HEIGHT / 8.0};
+    double p1[] = { (WIDTH / 1.5) + 80, HEIGHT / 8.0};
+
+
+    draw_tree(p0, p1, 0, 10, .66);
+
+
+    G_rgb(.94, .94, .916);
+
+    for(int i = 0; i < 500; ++i) {
+            G_fill_circle(drand48() * WIDTH, HEIGHT / 8.0 - 5, 10 * drand48());
+    }
+
+
+
+
+    double click[] = {0.0, 0.0};
+
+    for (int i = 0; i < MAX_SNOWFLAKES; i++) {
+        G_wait_click(click);
+        draw_koch_at_point(click, 80);
+    }
+
+
     int key;
     key = G_wait_key(); // pause so user can see results
-
-    //   G_save_image_to_file("demo.xwd") ;
-    G_save_to_bmp_file("Demo.bmp");
+    G_save_to_bmp_file("recursive.bmp");
 
 
     exit(EXIT_SUCCESS);
