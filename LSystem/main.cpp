@@ -241,22 +241,56 @@ int main(int argc, char **argv) {
 		G_line(0, 800 - i, 800, 800 - i);
 	}
 
+    // Drawing sun dark orange/red
+    G_rgb(1, .2, 0.0);
+
+  //G_fill_circle(150, 200, 100.0);
+    G_fill_circle(WIDTH / 2.0, 150, 300.0);
+
+    // Draw sand gradient
+    for(int i = 0; i < HEIGHT / 4.0; ++i) {
+        double r = 0.6 + (double) i / 1000;
+        double g = 0.3 + (double) i / 2000;
+        double b = .01 + (double) i / 2000;
+        G_rgb(r, g, b);
+        G_line(0, i, WIDTH, i);
+
+    }
+
 
 
 	// calculate the 3 points of the triangle
 	double p0[2], p1[2], p2[2];
-	p0[0] = swidth / 2 - (sheight - 400) / sqrt(3);
-	p0[1] = 300;
-	p1[0] = swidth / 2 + (sheight - 400) / sqrt(3);
-	p1[1] = 300;
-	p2[0] = swidth / 2;
-	p2[1] = sheight / 2 + (swidth * sqrt(3) / 6);
+	p0[0] = WIDTH / 4.0;
+	p0[1] = 150;
+	p1[0] = WIDTH / 2.0;
+	p1[1] = 500;
+	p2[0] = WIDTH /  2.0 ;
+	p2[1] = 100;
+
+
+    double q0[2], q1[2], q2[2];
+
+    q0[0] = WIDTH / 2.0;
+    q0[1] = 100;
+
+    q1[0] = WIDTH / 2.0;
+    q1[1] = 500;
+
+    q2[0] = (WIDTH / 4.0) * 3.0;
+    q2[1] = 150;
 
 	
 
 	
 	// draw the triangle
-	//drawSierpinskiTriangle(p0, p1, p2, 7);
+	drawSierpinskiTriangle(p0, p1, p2, 7);
+    drawSierpinskiTriangle(q0, q1, q2, 7);
+
+    G_rgb(0.0, 0.0, 0.0);
+
+    G_line(q0[0], q0[1], p1[0], p1[1]);
+
 
 
 	G_rgb(0, 0, 0);
