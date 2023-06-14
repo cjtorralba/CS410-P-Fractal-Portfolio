@@ -3,6 +3,7 @@
 
 #define WIDTH 800.0
 #define HEIGHT 800.0
+#define DEGREE_TO_RAD(x) ((x * M_PI) / 180)
 
 using namespace std;
 
@@ -40,30 +41,17 @@ void stringBuilder(char *source, int depth) {
 
     char temp[1000000] = {'\0'};
 
-
     for (int i = 0; i < depth; ++i) {
         for (int j = 0; j < strlen(source); ++j) {
             switch (source[j]) {
 
-                case 'A':
-                    strcat(temp, "+A-C-A+");
+                case 'F':
+                    strcat(temp, "G-F-G");
                     break;
 
-                case 'B':
-                    strcat(temp, "B+C+B");
+                case 'G':
+                    strcat(temp, "F+G+F");
                     break;
-
-                case 'C':
-                    strcat(temp, "A-C-A");
-                    break;
-
-                case '+':
-                    strcat(temp, "+");
-                    break;
-                case '-':
-                    strcat(temp, "-");
-                    break;
-
                 default:
                     break;
             }
@@ -84,15 +72,14 @@ void stringBuilder(char *source, int depth) {
 void drawWithGrammar(char *string, double lineLength, double startingX, double startingY) {
 
     G_rgb(0.0, 1.0, 0.0);
-    double degrees = 10.0;
-    double angle = 30.0;
+    double degrees = 120.0;
+    double angle = 120.0;
     double distance = lineLength;
 
     double p1[2] = {startingX, startingY};
 
     for (int i = 0; i < strlen(string) - 1; ++i) {
-        if (string[i] == 'f' || string[i] >= 'A' && string[i] <= 'Z') {
-            //  printf("%d", i);
+        if (string[i] == 'F' || string[i] == 'G') {
             drawLineAtAngle(p1, distance, degrees, true, false);
         } else if (string[i] == '+' || string[i] == '-') {
             string[i] == '+' ? degrees += angle : degrees -= angle;
@@ -111,14 +98,14 @@ void autoPlacer(char *string, double screenHeight, double screenWidth, double st
     double smallestX = 10000000.0;
     double smallestY = 10000000.0;
 
-    double degrees = 10.0;
-    double angle = 30.0;
+    double degrees = 0.0;
+    double angle = 120.0;
     double baseLength = 1.0;
 
     double p1[2] = {0.0, 0.0};
 
     for (int i = 0; i < strlen(string) - 1; ++i) {
-        if (string[i] == 'f' || string[i] >= 'A' && string[i] <= 'Z') {
+        if (string[i] == 'F' ||  string[i] == 'G') {
             drawLineAtAngle(p1, baseLength, angle, true, true);
         } else if (string[i] == '+' || string[i] == '-') {
             string[i] == '+' ? degrees += angle : degrees -= angle;
@@ -162,7 +149,7 @@ void fern(double p[2]) {
         double x = p[0];
         double y = p[1];
 
-		std::cout << "(" << x << ", " << y << ")\n)";
+		//cout << "(" << x << ", " << y << ")\n)";
 
         if (r < 0.01) {
             // change color to purple
@@ -190,8 +177,7 @@ void fern(double p[2]) {
             p[1] = 0.26 * x + 0.24 * y + 0.44;
         }
 
-        // draw p
-        G_point(p[0] * (swidth / 15) + swidth/2, p[1] * (sheight / 15));
+        G_point(p[0] * (WIDTH / 15) + WIDTH/2, p[1] * (HEIGHT / 15));
     }
 }
 
@@ -227,6 +213,12 @@ int main(int argc, char **argv) {
 
 
     int swidth, sheight;
+
+    char string[10000] = {'F', '-', 'G', '-', 'G'};
+
+    stringBuilder(string, 2);
+
+    printf("%s", string);
 
 
     // must do this before you do 'almost' any other graphical tasks
@@ -264,14 +256,18 @@ int main(int argc, char **argv) {
 
 	
 	// draw the triangle
-	drawSierpinskiTriangle(p0, p1, p2, 7);
+	//drawSierpinskiTriangle(p0, p1, p2, 7);
 
 
 	G_rgb(0, 0, 0);
 
-	p[0] = 0;
-	p[1] = 0;
-	fern(p0);
+	p0[0] = 0;
+	p0[1] = 0;
+//	fern(p0);
+
+    G_rgb(1.0, 0.0, 0.0);
+    drawWithGrammar(string, 20.0, 0.0, 0.0);
+   // autoPlacer(string, HEIGHT, WIDTH, 100.0, 100.0);
 
 	// // draw a circle on each p0, p1, p2
 	// // red color
