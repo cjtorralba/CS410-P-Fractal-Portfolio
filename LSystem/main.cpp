@@ -6,6 +6,152 @@
 
 using namespace std;
 
+
+
+
+/**
+ * Draws a line of a specified length at a specified angle, in degrees.
+ *
+ * @param listOfPoints The starting point in which we will draw the line from
+ * @param lineLength The length of the line being drawn
+ * @param angle Angle at which we wish to draw from, in degrees. It will be converted to radians in this function.
+ * @param increment true if you wish to move the listOfPoints to the location of the newly drawn line.
+ */
+void drawLineAtAngle(double *listOfPoints, double lineLength, double angle, bool increment, bool transparent) {
+    double radians = DEGREE_TO_RAD(angle);
+    double yLength = lineLength * sin(radians);
+    double xLength = lineLength * cos(radians);
+    G_rgb(0.0, 1.0, 0.0);
+
+    double p2[2] = {listOfPoints[0] + xLength, listOfPoints[1] + yLength};
+
+    if (!transparent) {
+        G_line(listOfPoints[0], listOfPoints[1], listOfPoints[0] + xLength, listOfPoints[1] + yLength);
+    }
+
+    if (increment) {
+        listOfPoints[0] += xLength;
+        listOfPoints[1] += yLength;
+    }
+}
+
+
+void stringBuilder(char *source, int depth) {
+
+    char temp[1000000] = {'\0'};
+
+
+    for (int i = 0; i < depth; ++i) {
+        for (int j = 0; j < strlen(source); ++j) {
+            switch (source[j]) {
+
+                case 'A':
+                    strcat(temp, "+A-C-A+");
+                    break;
+
+                case 'B':
+                    strcat(temp, "B+C+B");
+                    break;
+
+                case 'C':
+                    strcat(temp, "A-C-A");
+                    break;
+
+                case '+':
+                    strcat(temp, "+");
+                    break;
+                case '-':
+                    strcat(temp, "-");
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        strcpy(source, temp);
+        memset(temp, '\0', sizeof(temp));
+    }
+
+}
+
+
+
+/**
+ * Any character that is capital A - Z, or f/F, moves the dame distance
+ * +/- changes the angle, + increases by 30 degrees
+ * @param string The string that we will be building a picture from
+ */
+void drawWithGrammar(char *string, double lineLength, double startingX, double startingY) {
+
+    G_rgb(0.0, 1.0, 0.0);
+    double degrees = 10.0;
+    double angle = 30.0;
+    double distance = lineLength;
+
+    double p1[2] = {startingX, startingY};
+
+    for (int i = 0; i < strlen(string) - 1; ++i) {
+        if (string[i] == 'f' || string[i] >= 'A' && string[i] <= 'Z') {
+            //  printf("%d", i);
+            drawLineAtAngle(p1, distance, degrees, true, false);
+        } else if (string[i] == '+' || string[i] == '-') {
+            string[i] == '+' ? degrees += angle : degrees -= angle;
+        }
+    }
+}
+
+
+//Returns the length of how far the turtle should draw to stay on the screen
+void autoPlacer(char *string, double screenHeight, double screenWidth, double startingX, double startingY) {
+    //Should never reach this
+
+    double largestX = -10000000.0;
+    double largestY = -10000000.0;
+
+    double smallestX = 10000000.0;
+    double smallestY = 10000000.0;
+
+    double degrees = 10.0;
+    double angle = 30.0;
+    double baseLength = 1.0;
+
+    double p1[2] = {0.0, 0.0};
+
+    for (int i = 0; i < strlen(string) - 1; ++i) {
+        if (string[i] == 'f' || string[i] >= 'A' && string[i] <= 'Z') {
+            drawLineAtAngle(p1, baseLength, angle, true, true);
+        } else if (string[i] == '+' || string[i] == '-') {
+            string[i] == '+' ? degrees += angle : degrees -= angle;
+        }
+        // p1[0] = X position
+        // p1[1] = Y position
+        if (p1[0] >= largestX) {
+            largestX = p1[0];
+        } else if (p1[0] <= smallestX) {
+            smallestX = p1[0];
+        }
+
+        if (p1[1] >= largestY) {
+            largestY = p1[1];
+        } else if (p1[1] <= smallestY) {
+            smallestY = p1[1];
+        }
+    }
+
+    double midX = (largestX + smallestX) / 2.0;
+    double midY = (largestY + smallestY) / 2.0;
+
+    double scaleFactor = midX > midY ? screenWidth / midX : screenHeight / midY;
+
+
+    drawWithGrammar(string, scaleFactor, midX, midY);
+    printf("SF: %lf", scaleFactor);
+
+}
+
+
+
+
 // TODO: this isn't an L-System, this is just to visualize
 void fern(double p[2]) {
 	double r;
