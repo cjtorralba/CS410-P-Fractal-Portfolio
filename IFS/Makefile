@@ -1,4 +1,4 @@
-CC=g++
+CC=cc
 CFLAGS= -lm -lX11
 
 EXECUTABLE=main
