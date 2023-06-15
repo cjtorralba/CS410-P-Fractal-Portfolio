@@ -7,7 +7,14 @@
 using namespace std;
 
 
-
+/**
+ * Draws a Pythagoreas Tree, starting at a current location up until a certain amount of iterations.
+ * @param p0 Bottom left point of the tree
+ * @param p1 Bottom right point of the tree
+ * @param curr_iteration Current iteration of function
+ * @param depth How many layers deep are we iterating into the tree
+ * @param f Angle of triangle, ranges from 0.0 - .99
+ */
 void draw_tree(double *p0, double *p1, int curr_iteration, int depth, double f) {
 
     if(curr_iteration > depth)
@@ -55,6 +62,13 @@ void draw_tree(double *p0, double *p1, int curr_iteration, int depth, double f) 
 }
 
 
+
+/**
+ *
+ * @param p0
+ * @param p1
+ * @param depth
+ */
 void drawKochCurve(double p0[2], double p1[2], int depth) {
     if (depth <= 0) {
         return;
@@ -91,7 +105,12 @@ void drawKochCurve(double p0[2], double p1[2], int depth) {
 
 
 
-
+/**
+ * This function takes a point on the screen and a radius essentially, then draws three koch curves around that point to create
+ * a snowflake.
+ * @param point Location on the screen to draw the KochCurve
+ * @param sideLength Radius of the snowflake.
+ */
 void draw_koch_at_point(double point[2], double sideLength) {
 
 
@@ -112,6 +131,12 @@ void draw_koch_at_point(double point[2], double sideLength) {
 
 }
 
+
+/**
+ * Draws a cloud at a location (x, y)
+ * @param x X location to place cloud
+ * @param y Y location to place cloud
+ */
 void draw_cloud(double x, double y) {
     G_rgb(.839, .839, .839);
     G_fill_circle(x, y, 25);
@@ -141,14 +166,11 @@ int main(int argc, char **argv) {
     }
 
 
-
-
     // Star specs throughout whole screen
     G_rgb(.949, .937, .286);
     for(int i = 0; i < 1000; i++) {
         G_point(drand48() * WIDTH, drand48() * HEIGHT);
     }
-
 
     // Snow lines
     G_rgb(.94, .94, .916);
@@ -157,6 +179,7 @@ int main(int argc, char **argv) {
     }
 
 
+    // Drawing clouds around the top fo the screen
     draw_cloud(100, 740);
     draw_cloud(220, 730);
     draw_cloud(346, 745);
@@ -169,22 +192,18 @@ int main(int argc, char **argv) {
     // Place tree
     double p0[] = { WIDTH / 1.5, HEIGHT / 8.0};
     double p1[] = { (WIDTH / 1.5) + 80, HEIGHT / 8.0};
-
-
     draw_tree(p0, p1, 0, 10, .66);
 
 
+    // Drawing the snow covering the ground
     G_rgb(.94, .94, .916);
-
     for(int i = 0; i < 500; ++i) {
             G_fill_circle(drand48() * WIDTH, HEIGHT / 8.0 - 5, 10 * drand48());
     }
 
 
-
-
+    // Having user draw snowflakes
     double click[] = {0.0, 0.0};
-
     for (int i = 0; i < MAX_SNOWFLAKES; i++) {
         G_wait_click(click);
         draw_koch_at_point(click, 80);
@@ -194,7 +213,6 @@ int main(int argc, char **argv) {
     int key;
     key = G_wait_key(); // pause so user can see results
     G_save_to_bmp_file("recursive.bmp");
-
 
     exit(EXIT_SUCCESS);
 }

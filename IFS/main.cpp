@@ -7,91 +7,109 @@
 
 using namespace std;
 
+double points[2] = {0.0, 0.0};
+
+
+/**
+ * Scales our global value points by both scale factors.
+ * @param scaleFactorX
+ * @param scaleFactorY
+ */
+void scale(double scaleFactorX, double scaleFactorY) {
+    points[0] *= scaleFactorX;
+    points[1] *= scaleFactorY;
+}
+
+/**
+ * Translates our global value points by translation factors
+ * @param transFactorX
+ * @param transFactorY
+ */
+void translate(double transFactorX, double transFactorY) {
+    points[0] += transFactorX;
+    points[1] += transFactorY;
+}
 
 
 
-// TODO: this isn't an L-System, this is just to visualize
-void fern(double p[2]) {
-    double r;
+/**
+ * Draws a Sierpinsky triangle on the screen restricted to a certain area with a certain scale factor.
+ * @param min_x Restricts minimum location for triangle along X axis
+ * @param min_y Restricts minimum location for triangle along Y axis
+ * @param iterations Amount of points to place
+ * @param scaleAmt Scale factor
+ */
+void drawTriangleIFS(double min_x, double min_y, int iterations, double scaleAmt) {
 
-    G_rgb(1, .773, 0.314);
-    for (int i = 0; i < 100000 / 2; i++) {
-        r = drand48();
+    for (int i = 0; i < iterations; ++i) {
 
-        double x = p[0];
-        double y = p[1];
+        double random = drand48();
 
-        //cout << "(" << x << ", " << y << ")\n)";
+        if (random < .333) { // Draw bottom left quadrant
+            translate(0.0, 0.0);
 
-        if (r < 0.01) {
-            // change color to purple
+            G_rgb(1.0, 0.0, 0.0);
+        } else if (random > .333 && random < .666) { // Top Left Quadrant
 
-            p[0] = 0;
-            p[1] = 0.16 * y;
-        } else if (r < 0.86) {
-            // change color to green
 
-            p[0] = 0.85 * x + 0.04 * y;
-            p[1] = -0.04 * x + 0.85 * y + 1.6;
-        } else if (r < 0.93) {
-            // change color to red
+            translate(0.5, 0.0);
 
-            p[0] = 0.2 * x - 0.26 * y;
-            p[1] = 0.23 * x + 0.22 * y + 1.6;
+            G_rgb(0.0, 1.0, 0.0);
+
         } else {
-            // change color to yellow
+            translate(.25, .5);
 
-            p[0] = -0.15 * x + 0.28 * y;
-            p[1] = 0.26 * x + 0.24 * y + 0.44;
+            G_rgb(0.0, 0.0, 1.0);
         }
 
-        p[0] *= .8;
-        p[1] *= .8;
-        G_point(p[0] * (WIDTH / 15) + 50, p[1] * (HEIGHT / 15) + 30);
-
+        G_rgb(points[0] - points[1], points[1], points[0]);
+        G_point((scaleAmt * points[0]) + min_x , (scaleAmt * points[1]) + min_y );
+        scale(.5, .5);
     }
+
 }
 
-// TODO: this isn't an L-System, this is just to visualize
-void drawSierpinskiTriangle(double p0[2], double p1[2], double p2[2], int depth, bool color) {
-    if (depth <= 0) {
-        return;
+/**
+ * Draws a Sierpinsky carpet across the entire screen
+ * @param iterations Number of points to palce.
+ */
+void drawCarpet(int iterations) {
+    for (int i = 0; i < iterations; ++i) {
+        double random = drand48();
+        if (random < (1.0 / 8.0)) { // Bottom left
+            G_rgb(points[0], points[1], points[0] - points[1]);
+        } else if (random < (2.0 / 8.0)) {
+            G_rgb(1, 1, 0);
+            translate(0.0, (1.0 / 3.0));
+        } else if (random < (3.0 / 8.0)) {
+            G_rgb(1, 0, 1);
+            translate(0.0, (2.0 / 3.0));
+        } else if (random < (4.0 / 8.0)) {
+            G_rgb(0, 1, 1);
+            translate((1.0 / 3.0), 0.0);
+        } else if (random < (5.0 / 8.0)) {
+            G_rgb(1, 0, 0);
+            translate((1.0 / 3.0), (2.0 / 3.0));
+        } else if (random < (6.0 / 8.0)) {
+            G_rgb(0, 1, 0);
+            translate((2.0 / 3.0), 0.0);
+        } else if (random < (7.0 / 8.0)) {
+            G_rgb(0, 0, 1);
+            translate((2.0 / 3.0), (1.0 / 3.0));
+        } else {
+            G_rgb(0.5, 0, 1);
+            translate((2.0 / 3.0), (2.0 / 3.0));
+        }
+        G_rgb(points[0], points[1], points[0]);
+        G_point(WIDTH * points[0], HEIGHT * points[1]);
+        scale((1.0 / 3.0), (1.0 / 3.0));
     }
-    depth--;
 
-    // "sandy" color
-    if(color)
-        G_rgb(1.0 - depth / 10.0, 1.0 - depth / 10.0, 0.0);
-
-    // draw the triangle
-    G_fill_triangle(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]);
-
-    // calculate the other 3 points
-    double p3[2], p4[2], p5[2];
-    p3[0] = p0[0] + (p1[0] - p0[0]) / 2;
-    p3[1] = p0[1] + (p1[1] - p0[1]) / 2;
-    p4[0] = p1[0] + (p2[0] - p1[0]) / 2;
-    p4[1] = p1[1] + (p2[1] - p1[1]) / 2;
-    p5[0] = p2[0] + (p0[0] - p2[0]) / 2;
-    p5[1] = p2[1] + (p0[1] - p2[1]) / 2;
-
-    // draw the other 3 triangles
-    drawSierpinskiTriangle(p0, p3, p5, depth, color);
-    drawSierpinskiTriangle(p3, p1, p4, depth, color);
-    drawSierpinskiTriangle(p5, p4, p2, depth, color);
 }
-
-
 
 
 int main(int argc, char **argv) {
-
-
     int swidth, sheight;
-
-
-
-
 
     // must do this before you do 'almost' any other graphical tasks
     swidth = WIDTH;
@@ -102,104 +120,27 @@ int main(int argc, char **argv) {
     G_clear();
 
 
-    G_rgb(1, 0, 0);
 
-    // Light blue sky gradient
-    for(int i = 0; i < HEIGHT; i++) {
-        double r = 0.5 + (double) i / 2000;
-        double g = 0.7 + (double) i / 2000;
-        double b = 1.0;
-        G_rgb(r, g, b);
-        G_line(0, 800 - i, 800, 800 - i);
+
+    // Draw carpet across whole screen
+    drawCarpet(10000000);
+
+    for(int x = 1; x <= 9; x+=3) {
+        for(int y = 1; y <= 9; y+=3) {
+            // Skip the center square
+            if (x == 4 && y == 4) {
+                drawTriangleIFS(WIDTH / 3.0, HEIGHT / 3.0, 1000000, WIDTH / 3.0);
+                continue;
+            }
+            double minX = (WIDTH / 9) * x;
+            double minY = (HEIGHT / 9) * y;
+
+            drawTriangleIFS(minX, minY, 1000000, WIDTH / 9.0);
+
+            points[0] = 0.0;
+            points[1] = 0.0;
+        }
     }
-
-    // Drawing sun dark orange/red
-    G_rgb(1, .2, 0.0);
-
-    //G_fill_circle(150, 200, 100.0);
-    G_fill_circle(WIDTH / 2.0, 150, 300.0);
-
-    // Draw sand gradient
-    /*
-    for(int i = 0; i < HEIGHT / 4.0; ++i) {
-        double r = 0.6 + (double) i * drand48();
-        double g = 0.3 + (double) i / 2000;
-        double b = .01 + (double) i / 2000;
-        G_rgb(r, g, b);
-        G_line(0, i, WIDTH, i);
-
-    }
-     */
-
-    // Draw sand
-    double r = 1.0;
-    double g = 0.5;
-    double b = 0.1;
-    for(int i = 0; i < 10000000; ++i) {
-        double randomX = drand48();
-        double randomY = drand48();
-        G_rgb(r, g * randomX, b * randomY);
-        G_point(WIDTH * randomX, (HEIGHT  / 4.0) * randomY);
-    }
-
-
-
-    // calculate the 3 points of the triangle
-    double p0[2], p1[2], p2[2];
-    p0[0] = WIDTH / 4.0;
-    p0[1] = 150;
-    p1[0] = WIDTH / 2.0;
-    p1[1] = 500;
-    p2[0] = WIDTH /  2.0 ;
-    p2[1] = 100;
-
-
-    double q0[2], q1[2], q2[2];
-
-    q0[0] = WIDTH / 2.0;
-    q0[1] = 100;
-
-    q1[0] = WIDTH / 2.0;
-    q1[1] = 500;
-
-    q2[0] = (WIDTH / 4.0) * 3.0;
-    q2[1] = 150;
-
-
-    double z[2] = { WIDTH / 2.0, 0.0 };
-
-
-    G_rgb(0.0, 0.0, 0.0);
-    drawSierpinskiTriangle(p0, z, q2, 7, false);
-    // draw the triangle
-    drawSierpinskiTriangle(p0, p1, p2, 7, true);
-    drawSierpinskiTriangle(q0, q1, q2, 7, true);
-
-    // Draw shadow
-
-    // Borders
-    G_rgb(0.3, 0.2, 0.4);
-
-    // Draw border lines
-    for (double i = 0; i < 0.5; i += 0.1) {
-        // Left side border
-        G_line(p0[0] - i, p0[1], p1[0] - i, p1[1]);
-
-        // Right side border
-        G_line(p1[0] - i, p1[1], q2[0] - i, q2[1]);
-
-        // Center border
-        G_line(p2[0] - i, p2[1], p1[0] - i, p1[1]);
-    }
-
-
-    G_rgb(0, 0, 0);
-
-    p0[0] = 0.0;
-    p0[1] = 0.0;
-    fern(p0);
-
-
 
     int key;
     key = G_wait_key(); // pause so user can see results

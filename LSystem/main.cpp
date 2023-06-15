@@ -9,8 +9,6 @@
 #define DEGREE_TO_RAD(x) ((x * M_PI) / 180)
 
 
-void createRuleFern(char *str, int depth);
-
 
 void drawPlant(char *string, double distance, double angle, double *points);
 
@@ -21,30 +19,30 @@ void stringBuilderDragon(char *source, int depth);
 void drawDragon(char *string, double distance, double angle, double *points);
 
 int main() {
-    double swidth, sheight;
 
+    double swidth, sheight;
     // must do this before you do 'almost' any other graphical tasks
     swidth = 800.0;
     sheight = 800.0;
     G_init_graphics(swidth, sheight);  // interactive graphics
-
     // clear the screen with white
     G_rgb(.3, .3, .3);
-
     G_clear();
+    // =================================================================
 
-// Drawing the sky
+
+
+
+    // Drawing the sky
     for (int i = 0; i < HEIGHT; ++i) {
         G_rgb(.8 - ((double) i / 300), .5 - ((double) i / 100), .2 * i / 100);
         G_line(0, i, WIDTH, i);
     }
 
+    // Creating grass
     G_rgb(.086, .271, 0.055);
     G_fill_circle(WIDTH / 2.0, -900, 1000);
 
-
-    // take a string from the user
-//    char str[1000000] = {'F','[', '+', 'F', '+', 'F', ']', '-', 'F'};
 
     char str[1000000] = {'F'};
     char drag[1000000] = {'F', 'X'};
@@ -52,35 +50,25 @@ int main() {
     stringBuilderPlant(str, 4);
 
 
-    double test[2] = {WIDTH / 6.0, HEIGHT - (HEIGHT / 8.0)};
+    // Drawing clouds
+    double points[2] = {WIDTH / 6.0, HEIGHT - (HEIGHT / 8.0)};
     G_rgb(.5, .5, .5);
-    drawDragon(drag, 2.0, 0.0, test);
+    drawDragon(drag, 2.0, 0.0, points);
 
-    test[0] += WIDTH / 6.0;
-    test[1] -= 40.0;
-    drawDragon(drag, 2.0, 30.0, test);
+    points[0] += WIDTH / 6.0;
+    points[1] -= 40.0;
+    drawDragon(drag, 2.0, 30.0, points);
 
-    test[0] += WIDTH / 6.0;
-    test[1] += 90.0;
-    drawDragon(drag, 2.0, -30.0, test);
+    points[0] += WIDTH / 6.0;
+    points[1] += 90.0;
+    drawDragon(drag, 2.0, -30.0, points);
 
-    test[0] = WIDTH / 2.0;
-    test[1] = 100.0;
 
+    // Drawing lonely plant
+    points[0] = WIDTH / 2.0;
+    points[1] = 100.0;
     G_rgb(.84, .5, .05);
-    drawPlant(str, 3.0, 90.0, test);
-//    createRuleFern(str, 3);
-
-
-
-
-
-
-
-
-
-    //  drawPlant(str, 7.0, 90.0, test);
-
+    drawPlant(str, 3.0, 90.0, points);
 
 
     int key;
@@ -90,6 +78,14 @@ int main() {
 }
 
 
+/**
+ * Draws a line a certain length at a given angle
+ * @param listOfPoints Location to draw from
+ * @param lineLength Length of the line
+ * @param angle     Angle to draw at
+ * @param increment If you want the function to increase the value of listOfPoints by lineLength
+ * @param transparent True if you wish the drawing not to be seen
+ */
 void drawLineAtAngle(double *listOfPoints, double lineLength, double angle, bool increment, bool transparent) {
     double radians = DEGREE_TO_RAD(angle);
     double yLength = lineLength * sin(radians);
@@ -107,6 +103,15 @@ void drawLineAtAngle(double *listOfPoints, double lineLength, double angle, bool
     }
 }
 
+
+/**
+ * This function draws a plant at a given location, it uses a make-shift stack to keep track of previously saved locations and angle so we create a
+ * nice in depth photo
+ * @param string Grammmar to draw from
+ * @param distance Line length between each connecting piece
+ * @param angle Angle between lines
+ * @param points Starting point
+ */
 void drawPlant(char *string, double distance, double angle, double *points) {
 
     int arrSize = 0;
@@ -125,8 +130,6 @@ void drawPlant(char *string, double distance, double angle, double *points) {
     storedAngle = new double[arrSize];
     int currentIndex = 0;
 
-
-    double *saved;
 
     for (int i = 0; i < strlen(string); ++i) {
 
@@ -167,18 +170,18 @@ void drawPlant(char *string, double distance, double angle, double *points) {
 }
 
 
-
-
-
-
-
-
-// function which creates a grammar rule in a char array of:
-// Rule 1: A -> +A-C-A+
-// Rule 2: B -> B+C+B
-// Rule 3: C -> A-C-A
-// with a specified depth
-
+/** function which creates a grammar rule in a char array of:
+* Rules:
+ *   F -> FX[FX[+XF]]
+ *   X -> FF{+XZ++X-F[+ZX]][-X++F-X]
+ *   Z -> [+F-X-F][++ZX]
+ *   + -> Increase angle
+ *   - -> Decrease angle
+ *   [ -> Store location and angle
+ *   ] -> Go back to last location and angle
+ * @param source Starting string
+ * @param depth Number of iterations to do
+ **/
 void stringBuilderPlant(char *source, int depth) {
 
     char temp[1000000] = {'\0'};
